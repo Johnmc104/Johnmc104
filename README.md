@@ -79,11 +79,8 @@ flowchart LR
     style B fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000
     style C fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000
     style D fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000
-    
+    style E fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
 ```
-
-style E fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
-
 
 ### 📊 VCM — 验证用例管理系统
 
