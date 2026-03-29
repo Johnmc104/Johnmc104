@@ -68,9 +68,9 @@
 
 ```mermaid
 flowchart LR
-    A["VReg<br/>寄存器定义"] -->|"UVM RAL"| B["vtool<br/>项目搭建"]
-    B -->|"验证环境"| C["VCM<br/>仿真执行"]
-    C -->|"Sim Result"| D["VRG<br/>覆盖率分析"]
+    A["vreg<br/>寄存器定义"] -->|"UVM RAL"| B["vtool<br/>项目搭建"]
+    B -->|"验证环境"| C["vcm<br/>仿真执行"]
+    C -->|"Sim Result"| D["vrg<br/>覆盖率分析"]
     C -->|"Pass/Fail"| E["vtrack<br/>验证追踪"]
     D -->|"Coverage"| E
     E -->|"未覆盖 → 补充用例"| B
@@ -81,40 +81,6 @@ flowchart LR
     style D fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000
     style E fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
 ```
-
-### 📊 VCM — 验证用例管理系统
-
-面向数字验证仿真流程的全生命周期管理系统。`v1.5.0`
-
-| 架构 | 说明 |
-|------|------|
-| **存储** | 本地 SQLite + 远程 Flask API，按环境自动切换 |
-| **CLI** | `vcm` 统一入口，10 大命令组：project / module / case / task / sim / regr / info / emc / db / init |
-| **Web** | Flask + HTML 模板，仿真数据可视化与回归报告 |
-| **集成** | Makefile 驱动：`make build_ssh → make regr → make check → make report` |
-
-**典型场景：**
-- **单次仿真**：`vcm task add` → `vcm sim add_basic_single` — 自动采集编译信息、仿真日志、种子、用例名、通过状态
-- **集群回归**：Slurm 批量提交 → 状态查询 → 结果统计 → 报告生成
-- **EMC 多 Build**：多工艺角 test-build 映射、编译命令自动获取
-- **一键调试**：`vcm info sim <id>` 直接启动 Verdi
-
-### 📈 VRG — VDB 覆盖率分析引擎
-
-Synopsys VDB 覆盖率数据库的解析与报告工具，支持用例级覆盖率归因分析。
-
-| 层 | 技术 | 能力 |
-|----|------|------|
-| **解析层** | C lib (Synopsys VDB API) | 直接读取 VDB 二进制数据库，零中间格式 |
-| **接口层** | Python API (`VRGSession`) | 编程式访问，支持批量查询与脚本集成 |
-| **报告层** | JSON / 文本 | 7 维覆盖率报告 + 用例级归因 |
-
-**7 维覆盖率**：Line · Branch · Condition · Toggle · FSM · Assert · Group
-
-**核心能力**：
-- 按用例粒度归因覆盖率贡献，识别冗余 case
-- 双数据源：VDB 直连 / JSON 报告，按环境自动切换
-- 与 vtrack 联动：`vtrack sync vrg` 自动同步覆盖率至追踪系统
 
 ### 🔗 vtrack — 验证追踪管理系统
 
@@ -141,7 +107,7 @@ vtrack gap --priority P0           # 覆盖率缺口
 
 支持 Human / JSON / YAML 多格式输出，同时服务于工程师手动操作和 ChipAgent AI 工具调用。
 
-### 📋 VReg — 寄存器管理与代码生成平台
+### 📋 vreg — 寄存器管理与代码生成平台
 
 芯片寄存器定义、管理与多格式代码生成的一站式平台。
 
@@ -169,6 +135,39 @@ vtrack gap --priority P0           # 覆盖率缺口
 
 内置 svlib + OVL 库引用。
 
+### 📊 vcm — 验证用例管理系统
+
+面向数字验证仿真流程的全生命周期管理系统。`v1.5.0`
+
+| 架构 | 说明 |
+|------|------|
+| **存储** | 本地 SQLite + 远程 Flask API，按环境自动切换 |
+| **CLI** | `vcm` 统一入口，10 大命令组：project / module / case / task / sim / regr / info / emc / db / init |
+| **Web** | Flask + HTML 模板，仿真数据可视化与回归报告 |
+| **集成** | Makefile 驱动：`make build_ssh → make regr → make check → make report` |
+
+**典型场景：**
+- **单次仿真**：`vcm task add` → `vcm sim add_basic_single` — 自动采集编译信息、仿真日志、种子、用例名、通过状态
+- **集群回归**：Slurm 批量提交 → 状态查询 → 结果统计 → 报告生成
+- **EMC 多 Build**：多工艺角 test-build 映射、编译命令自动获取
+- **一键调试**：`vcm info sim <id>` 直接启动 Verdi
+
+### 📈 vrg — VDB 覆盖率分析引擎
+
+Synopsys VDB 覆盖率数据库的解析与报告工具，支持用例级覆盖率归因分析。
+
+| 层 | 技术 | 能力 |
+|----|------|------|
+| **解析层** | C lib (Synopsys VDB API) | 直接读取 VDB 二进制数据库，零中间格式 |
+| **接口层** | Python API (`VRGSession`) | 编程式访问，支持批量查询与脚本集成 |
+| **报告层** | JSON / 文本 | 7 维覆盖率报告 + 用例级归因 |
+
+**7 维覆盖率**：Line · Branch · Condition · Toggle · FSM · Assert · Group
+
+**核心能力**：
+- 按用例粒度归因覆盖率贡献，识别冗余 case
+- 双数据源：VDB 直连 / JSON 报告，按环境自动切换
+- 与 vtrack 联动：`vtrack sync vrg` 自动同步覆盖率至追踪系统
 ---
 
 ## 更多效率工具
