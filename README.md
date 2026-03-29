@@ -66,11 +66,24 @@
 
 我围绕验证全生命周期痛点，独立开发了五套核心工具，覆盖从仿真执行到覆盖率追踪闭环的完整链路：
 
+```mermaid
+flowchart LR
+    A["VReg<br/>寄存器定义"] -->|"UVM RAL"| B["vtool<br/>项目搭建"]
+    B -->|"验证环境"| C["VCM<br/>仿真执行"]
+    C -->|"Sim Result"| D["VRG<br/>覆盖率分析"]
+    C -->|"Pass/Fail"| E["vtrack<br/>验证追踪"]
+    D -->|"Coverage"| E
+    E -->|"未覆盖 → 补充用例"| B
+
+    style A fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    style B fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000
+    style C fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000
+    style D fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000
+    
 ```
-验证执行：vtool (脚手架/CLI)  →  VCM (仿真管理)   →  VRG (覆盖率分析)
-验证追踪：vtrack (Feature→VP→Case 追踪矩阵)  ←── VCM 结果 + VRG 覆盖率
-寄存器：  VReg (定义 → UVM RAL / RTL / C Header 代码生成)
-```
+
+style E fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
+
 
 ### 📊 VCM — 验证用例管理系统
 
