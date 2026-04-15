@@ -64,11 +64,11 @@
 
 ## 验证工具生态
 
-从手动工具到 AI 编排——六套工具组成完整的验证自动化栈：
+从手动工具到前端视窗，再到 AI 编排——七套工具组成完整的验证自动化栈：
 
 ```mermaid
 flowchart TD
-    CA["🤖 ChipAgent<br/><i>Playbook 编排 · Checker · 多模型分层</i>"]:::agent
+    CA["🤖 ChipAgent (自研Agent)<br/><i>Workflow 编排</i>"]:::agent
 
     CA --> Platform
 
@@ -79,8 +79,12 @@ flowchart TD
         vcm["vcm<br/><i>仿真</i>"]:::tool
         vrg["vrg<br/><i>覆盖率</i>"]:::tool
         vtrack["vtrack<br/><i>追踪</i>"]:::track
+        
         vreg --> vtool --> vcm --> vrg --> vtrack
     end
+    
+    vctrl["💻 VCtrl (VS Code GUI)<br/><i>统一视图 · 实时集控</i>"]:::gui
+    vctrl -.-> Platform
 
     vtrack -. "Gap 迭代" .-> vtool
 
@@ -88,94 +92,46 @@ flowchart TD
     classDef reg fill:#fff3e0,stroke:#ef6c00,color:#000
     classDef tool fill:#e3f2fd,stroke:#1565c0,color:#000
     classDef track fill:#e8f5e9,stroke:#2e7d32,color:#000
+    classDef gui fill:#e0f2f1,stroke:#00796b,stroke-width:2px,color:#000
 ```
 
 | 层 | 工具 | 职责 |
 |---|------|------|
 | **AI 编排** | ChipAgent | Playbook 阶段编排，驱动下层工具完成端到端流程 |
+| **IDE 集成** | VCtrl | VS Code 原生扩展，将 CLI 工具链图形化与可视化 |
 | **工具平台** | vreg · vtool · vcm · vrg · vtrack | 寄存器定义 · 项目搭建 · 仿真管理 · 覆盖率分析 · 验证追踪 |
 
 ---
 
 ### 🤖 ChipAgent — AI 驱动的 EDA 终端助手
 
-这是我独立研发的 LLM Agent 框架，部署在高可用的隔离 EDA 服务器上，通过终端交互或管道流水线驱动芯片验证全流程。
+ChipAgent 是一款专为芯片设计全流程打造的终端 AI 助手。它基于 Deep Agents（LangChain 生态）构建，旨在部署于网络隔离的 EDA（电子设计自动化）服务器环境中。只需确保 LLM API 连通，即可在终端运行。
 
-**核心理念：强约束的流程编排** 
-与传统通用智能体，该 Agent 不依赖“自由发散”，而是被内置的 Playbook 在各个阶段严密驱动，并且每一步都有前置的自动化 Checker 进行质量把关。
+与市面上通用的 AI 编程助手（如 Copilot 或 Claude Code）不同，ChipAgent 的核心定位是解决芯片设计中**可规范化、可重复执行的流程任务**。
 
-```mermaid
-flowchart LR
-    S1["🏷 分类<br/><i>fast</i>"]:::fast
-    S2["🔍 分析<br/><i>strong</i>"]:::strong
-    S3["🔧 实施<br/><i>strong</i>"]:::strong
-    S4["✅ 验证<br/><i>fast</i>"]:::fast
-    G{{"Pipeline Gate"}}
+#### 🌟 核心应用场景
 
-    S1 -->|"✓"| S2 -->|"✓"| S3 -->|"✓"| S4 -->|"✓"| G
+它能够协助芯片工程师处理日常繁杂的底层任务，包括：
+- 仿真调试与排错
+- 逻辑综合
+- 日志分析
+- 开发环境搭建
+- EDA 工具的专业知识问答
 
-    classDef fast fill:#e8f5e9,stroke:#43a047,color:#000
-    classDef strong fill:#e3f2fd,stroke:#1e88e5,color:#000
-```
+#### ✨ 关键特性
 
-#### 架构特色
+| 核心特性 | 说明与价值 |
+|---|---|
+| **三层 EDA 知识体系** | 采用 YAML 和 Markdown 驱动的“岗位(Position) → 事项(Playbook) → 知识(Skill)”三层模型|
+| **原生 CI 集成（管道）** | 支持无缝嵌入自动化仿真脚本（如 `-c "查询" -e -o report.md`） |
+| **安全与权限把控** | 具备四级风险划分策略，结合 LLM 分类器与“人类在环（HITL）”审批机制|
+| **跨层记忆与复盘系统** | 实现项目级、用户级、会话级三层记忆，支持 AI 召回跨会话迁移；提供会话追踪（`trace.jsonl`）以供事后复盘 |
 
-| 设计 | 说明 |
-|------|------|
-| **三层知识模型** | Position（岗位）→ Playbook（事项）→ Skill（知识），声明式 YAML + Markdown，扩展免改代码 |
-| **Coordinator-Worker** | 6 岗位 Agent 按需创建：DV · DV-VTool · Syn · RE · IPC · Coordinator 路由 |
-| **28 Playbook** | 验证调试、环境搭建、Spec 分析、覆盖率收敛、综合运行……每个都有阶段定义和质量门 |
-| **29 Skill 知识库** | UVM 方法学 · VCS 仿真 · DC 综合 · SDC 约束 · SV 语法 — 自动注入对应岗位 |
-| **多模型分层** | strong 模型做分析/修复，fast 模型做分类/验证，按阶段自动切换，降低 60%+ 成本 |
+#### 🛠️ 技术与工程设计
 
-#### 记忆与上下文
-
-| 能力 | 说明 |
-|------|------|
-| **项目记忆** | 绑定 Git 仓库，跨会话持久化项目事实、修复经验、任务笔记 |
-| **AI 召回** | 每次提问前从记忆库检索相关上下文，自动注入 system prompt |
-| **三级压缩** | Microcompact（零成本清理旧工具输出）→ Smart Summarization（LLM 摘要）→ Session Truncation（防 OOM） |
-| **记忆工具** | Agent 可主动写入记忆——修复经验自动积累，下次遇到同类问题直接复用 |
-
-#### 现成工作流示例
-
-**Spec 解析 → 验证计划生成**：
-
-```bash
-chip-agent -c "解析 @doc/apb_timer_spec.pdf 生成 Feature 列表和验证计划" -y
-```
-
-→ 自动编排 2 个 Leaf Playbook：  
-`dv-spec-analyze`（文档解析 → Feature 提取 → vtrack feature add）→ `dv-vplan-create`（VP 生成 → Checkpoint 定义 → testplan.md 输出）  
-→ 每步 Checker 校验 vtrack 数据完整性，Pipeline Gate 审查交付件质量
-
-**验证环境搭建**（Workflow: `dv-foundation`）：
-
-```bash
-chip-agent -c "搭建 APB Timer 的 UVM 验证环境并通过编译" -y
-```
-
-→ 自动编排 3 个 Leaf Playbook：  
-`dv-proj-init`（目录结构 + Makefile + vtrack init）→ `dv-tvc-create`（UVM Agent + Sequence）→ `dv-env-setup`（TB Top + Environment + 编译通过）  
-→ file_check / compile_check / vtrack_status 三重 Checker 逐阶段把关
-
-两个 Workflow 串联，即可从一份 Spec 文档到一个可编译的验证环境——中间不需要人工介入。
-
-#### 与通用 Agent 的差异
-
-| | 通用 Agent (Claude Code) | ChipAgent |
-|--|--------------------------|-----------|
-| **场景** | 开放式编码与研究 | EDA 规范化流程 |
-| **部署** | 完整开发环境 | 终端二进制，网络隔离 EDA 服务器 |
-| **流程控制** | 自由对话 | Playbook 强制阶段编排 + Checker |
-| **成本** | 单一强模型 | strong/fast 分层，自动切换 |
-| **领域知识** | 手动注入 | 29 Skill 自动加载 |
-| **工具集成** | 通用文件操作 | 原生 vtrack / vcm / vrg 集成 |
-
-#### 技术栈
-
-Python 3.11+ · LangChain Deep Agents · LangGraph · Rich 终端 UI · PyInstaller 跨平台打包  
-v0.6.1 · 1138 测试 · 57 模块 · 16K 行
+- **开发核心**：Python ≥ 3.11，使用先进的 `uv` 作为包与环境管理器。
+- **多模型兼容**：支持通过配置文件一键切换 OpenAI、Anthropic、Google GenAI 等主流大模型服务。
+- **代码规模**：项目整体达 3.1 万余行，包含灵活的组件工厂、阶段编排状态机、19 个核心组件，以及 1911 个高质量测试用例。
 
 ---
 
@@ -187,14 +143,12 @@ v0.6.1 · 1138 测试 · 57 模块 · 16K 行
 
 基于 Feature→VP→Case 三层模型的验证追踪工具，连接功能需求与测试执行的完整可追溯链路。
 
-| 能力 | 说明 |
-|------|------|
-| **三层追踪** | Feature (功能点) → VP (验证点) → Case (测试用例)，支持多对多映射 |
-| **功能组** | Feature 按 group 分组，支持按功能域聚合查看与分析 |
-| **追踪矩阵** | 自动生成 Feature×VP×Case 覆盖矩阵，直观呈现验证进度 |
-| **GAP 分析** | 识别未覆盖功能点、无用例 VP、失败用例，按优先级/功能组过滤 |
-| **数据同步** | 对接 VCM 仿真结果 + VRG 覆盖率数据 (`sync vcm/vrg`) |
-| **快照迭代** | 验证快照管理，追踪收敛趋势 |
+| 核心特性 | 说明与价值 |
+|---|---|
+| **层次化追踪** | 建立 Feature → VP (验证点) → Case 的多对多直接追溯与映射关系 |
+| **覆盖率与结果同步** | 直接对接 VCM 仿真结果与 VRG，自动同步功能覆盖率数据 (`sync vcm/vrg`) |
+| **GAP 缺口分析** | 智能识别未覆盖功能点、无用例验证点及失败用例，支持多级过滤分析 |
+| **矩阵与快照追踪** | 自动生成 Feature×VP×Case 三维追踪矩阵，通过验证快照监控收敛趋势 |
 
 **典型工作流**：
 ```bash
@@ -212,27 +166,23 @@ vtrack gap --priority P0           # 覆盖率缺口
 
 芯片寄存器定义、管理与多格式代码生成的一站式平台。
 
-| 层 | 技术 | 能力 |
-|----|------|------|
-| **前端** | React + Vite | 多项目管理、可视化编辑、Markdown 文档、全局搜索、批量地址编辑 |
-| **后端** | FastAPI + SQLite | RESTful API、JWT 三级权限、版本锁定防并发 |
-| **生成引擎** | Python + SystemRDL | SystemRDL · UVM Model · RTL · C Header · Config · Functional Coverage |
-
-支持 Excel 导入（智能解析宏定义/数组/版本）、地址重叠/位域冲突校验、32/64 位自定义位宽。
+| 核心特性 | 说明与价值 |
+|---|---|
+| **全栈式前后端** | 前端 React + Vite，多功能富文本编辑与可视化；后端 FastAPI + SQLite 构建强权限系统 |
+| **多态生成引擎** | 内嵌 SystemRDL 并自动编译，输出一揽子 UVM Model、RTL、C Header 及覆盖率模型 |
+| **重叠位域检测** | 智能校验地址或位宽等潜在物理重叠冲突错点并执行 32/64位锁定防并发 |
+| **复杂 Excel 互通** | 支持宏定义、复杂数级导入生成，解决版本与数据溯源的一揽子开发成本 |
 
 #### 🛠️ vtool — DV 命令行工具集
 
 部署于 EDA 服务器的一站式验证辅助工具，统一入口 `vtool -<option>`。
 
-| 功能 | 命令 | 说明 |
-|------|------|------|
-| 项目脚手架 | `-init bt\|st` | 一键生成模块级 / 系统级 UVM 项目结构 |
-| 组件生成 | `-c agent\|tvc\|env\|tmc\|tms` | 自动创建 UVM Agent / TVC / Env 等组件 |
-| 回归管理 | `-testlist` · `-emc` · `-check` | case 扫描 → 回归配置 → 日志/timing 检查 |
-| 日志分析 | `-log` · `-bug` | 仿真日志检查 + Markdown Bug 报告（含 seed/git） |
-| Case 索引 | `-findsw` | 全量扫描 UVM case，按 group/case/class 索引 |
-| 调试 | `-tarmac fg` | tarmac.log → 火焰图 SVG |
-| 设计辅助 | `-inst` · `-port` · `-power` | 模块例化 / IO List / FSDB 功耗分析 |
+| 核心特性 | 说明与价值 |
+|---|---|
+| **一键式 UVM 骨架** | 分类生成模块 / 系统级验证层次 (`-init bt\|st`) 及各类组件 (`-c agent\|env`) |
+| **混合运行管理** | 用例动态扫描，生成 EMC (环境多构建) 回归列表，自动查库、解析及重跑时序 |
+| **测试日志提纯** | 识别仿真报错或断言触发，自动导出 Markdown 回归 Bug 报告以进行 Issue 定位 |
+| **代码解析溯源** | 支持全代码库内搜索组内、类名并一键导出，支持火焰图转换及静态参数生成 |
 
 内置 svlib + OVL 库引用。
 
@@ -240,12 +190,12 @@ vtrack gap --priority P0           # 覆盖率缺口
 
 面向数字验证仿真流程的全生命周期管理系统。`v1.5.0`
 
-| 架构 | 说明 |
-|------|------|
-| **存储** | 本地 SQLite + 远程 Flask API，按环境自动切换 |
-| **CLI** | `vcm` 统一入口，10 大命令组：project / module / case / task / sim / regr / info / emc / db / init |
-| **Web** | Flask + HTML 模板，仿真数据可视化与回归报告 |
-| **集成** | Makefile 驱动：`make build_ssh → make regr → make check → make report` |
+| 核心特性 | 说明与价值 |
+|---|---|
+| **自适应读写引擎** | CLI 双环境感知：后端直连 Flask API；无网络可降级本地 SQLite 并呈现离线报告 |
+| **单例仿真全托管** | 采集编译日志、仿真种子及其通过状态等参数，对任一错误执行一键 Verdi 再现 |
+| **回归切分与集群监控** | Slurm 批量提交及轮询，整合用例集、结果矩阵统计与测试异常回归报告 |
+| **多工艺覆盖角配置** | 管理多构建下的 EMC 并执行自动化构建拉取 (Make) 及校验 (Check) 闭环 |
 
 **典型场景：**
 - **单次仿真**：`vcm task add` → `vcm sim add_basic_single` — 自动采集编译信息、仿真日志、种子、用例名、通过状态
@@ -257,18 +207,32 @@ vtrack gap --priority P0           # 覆盖率缺口
 
 Synopsys VDB 覆盖率数据库的解析与报告工具，支持用例级覆盖率归因分析。
 
-| 层 | 技术 | 能力 |
-|----|------|------|
-| **解析层** | C lib (Synopsys VDB API) | 直接读取 VDB 二进制数据库，零中间格式 |
-| **接口层** | Python API (`VRGSession`) | 编程式访问，支持批量查询与脚本集成 |
-| **报告层** | JSON / 文本 | 7 维覆盖率报告 + 用例级归因 |
-
-**7 维覆盖率**：Line · Branch · Condition · Toggle · FSM · Assert · Group
+| 核心特性 | 说明与价值 |
+|---|---|
+| **VDB 二进制直读** | `Synopsys C lib` 嵌入原生解析层引擎进行全覆盖率无损直接重组 |
+| **测试粒度精准指认** | 按任一特定 Testcase 的归因溯源与统计覆盖贡献权重并排除冗余 case |
+| **七维覆盖率引擎** | 原生提取 `Line/Branch/Condition/Toggle/FSM/Assert/Group` 并多格式输出 |
+| **多源自适应同步** | 脱离 VDB API 时智能解析提取的远端 JSON，通过 `vtrack` 自动化推流同步 |
 
 **核心能力**：
 - 按用例粒度归因覆盖率贡献，识别冗余 case
 - 双数据源：VDB 直连 / JSON 报告，按环境自动切换
 - 与 vtrack 联动：`vtrack sync vrg` 自动同步覆盖率至追踪系统
+
+#### 💻 VCtrl — VS Code 验证控制中心
+
+将验证工作流（`vtool`、`vcm`、`vrg`、`vtrack`）直接集成到代码编辑器中的 VS Code 原生扩展。
+
+| 核心特性 | 说明与价值 |
+|---|---|
+| **全景数据仪表盘** | 内联统计用例及验证点覆盖数，快速直角呈现通过率以及优先级状态 |
+| **测试计划(VPlan)视图** | 可视化缺口分析编辑矩阵，无缝化实现 Feature → Case 全生命周期追溯 |
+| **实时仿真面板** | GUI 并发调用内部 `vcm` 联合集群状态实时监控进程运行、及 `Seed` 拉取等行为 |
+| **智能重组与错误捕获** | 根据 `Data fail` 参数抽取报错点回归重启并智能调用 Verdi 环境下进行调试 |
+| **两级缓存底座** | 阻断式防止界面进程冻结并内存级复用终端执行信号机制，确保用户无感 |
+
+通过可视化的面板与树状视图组件，极大简化了终端敲击命令的繁琐过程，并以所见即所得的方式完成回归测试配置和审查追踪。
+
 ---
 
 ## 更多效率工具
