@@ -303,16 +303,6 @@ flowchart LR
 
 ---
 
-## 技术写作
-
-基于 LaTeX (elegantbook) 编写的技术文档：
-
-**书籍**：SoC 功能验证 · ASIC 设计与综合 · 低功耗与存储管理 · ECC 密码学 · 物理设计
-
-**手册**：Design Compiler · Fusion Compiler · 数字验证 · Git 工作流 · Tcl Workshop
-
----
-
 ## 🚀 未来焦点
 
 1. **拓展 Agent 的能力边界**：从中小型模块级验证，向更大规模的异构 SoC 场景延伸——跨模块联调、多子系统并行验证。
