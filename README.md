@@ -36,24 +36,24 @@
 mindmap
   root((核心能力))
     芯片验证
-      UVM / SystemVerilog
-      VCS / Xcelium
-      Verdi 调试 & NPI
-      SpyGlass CDC / Lint
+      UVM · SystemVerilog
+      VCS · Xcelium
+      Verdi 调试 · NPI
+      SpyGlass CDC Lint
       Synopsys VIP
     后端物理设计
-      DC / ICC2 / FC
-      PT / FM / RTLA
+      DC · ICC2 · FC
+      PT · FM · RTLA
       DSO.ai
-      OpenROAD / Yosys
+      OpenROAD · Yosys
     软件开发
       Python 全栈
-      React + TypeScript
-      FastAPI + SQLite
-      C/C++ 扩展
-    AI & Agent
+      React · TypeScript
+      FastAPI · SQLite
+      C C++ 扩展
+    AI Agent
       LangChain
-      Claude / OpenAI API
+      Claude · OpenAI API
       Prompt Engineering
       Tool Orchestration
 ```
@@ -300,6 +300,7 @@ flowchart LR
 | [sdc-xdc-support](https://github.com/Johnmc104/sdc-xdc-support) | VSCode 插件：SDC/XDC 时序约束支持 | TypeScript |
 | [reg_tool_manage](https://github.com/Johnmc104/reg_tool_manage) | SystemRDL 寄存器管理与多格式代码生成 | Python |
 | [sv_parser](https://github.com/Johnmc104/sv_parser) | 基于 ANTLR4 的 SystemVerilog 解析器 | Python · ANTLR |
+
 
 ---
 
