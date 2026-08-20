@@ -22,7 +22,7 @@
 在完成验证主业的同时，我持续投入两个方向的探索：
 
 1. **全栈工具链开发**：针对验证生命周期中的效率瓶颈，独立设计并落地了多套核心工具——VCM（仿真管理）、VRG（覆盖率分析）、VReg（寄存器平台），并通过 VCtrl（VS Code 扩展）统一为可视化交互界面，覆盖了从仿真执行到追踪闭环的完整链路。
-2. **AI 驱动的验证工作流**：在工具链的基础上，研发了终端 AI Agent 框架——ChipAgent。它将零散的命令行工具编排成 AI 可驱动的自动化流程，让"从 Spec 解析到环境搭建"可以通过自然语言对话完成。内置的 vtrack 验证追踪系统管理 Feature → VP → Case 全链路闭环。
+2. **AI 驱动的验证工作流**：在工具链的基础上，研发了终端 AI Agent 框架——ChipAgent。它将零散的命令行工具编排成 AI 可驱动的自动化流程，让"从 Spec 解析到环境搭建"可以通过自然语言对话完成。独立的 vtrack 验证追踪系统管理 Feature → VP → Case 全链路闭环，通过 VCtrl 实现可视化。
 
 此外，为了建立从 RTL 到 GDSII 的全局物理视野，我自建了一套覆盖综合、布局布线与签核的完整后端流程框架（chip_flow），并在多个开源 SoC 上跑通验证。
 
@@ -95,34 +95,40 @@ mindmap
 
 ## 验证工具生态
 
-从设计定义到追踪闭环——九套系统组成完整的验证自动化栈：
+从设计定义到追踪闭环——十一套系统组成完整的验证自动化栈：
 
 ```mermaid
 flowchart LR
     vreg["vreg<br/><i>寄存器定义</i>"]:::reg
     clkrst["crn design<br/><i>时钟复位设计</i>"]:::reg
+    vtool["vtool<br/><i>环境搭建</i>"]:::scaffold
     vcm["vcm<br/><i>仿真执行</i>"]:::tool
     wave["tool_wave<br/><i>波形调试</i>"]:::debug
     ktm["tool_ktm<br/><i>内核追踪</i>"]:::debug
     vrg["vrg<br/><i>覆盖率分析</i>"]:::tool
-    CA["ChipAgent<br/><i>流程编排 · vtrack 追踪</i>"]:::agent
+    vtrack["vtrack<br/><i>需求追踪</i>"]:::track
+    CA["ChipAgent<br/><i>流程编排</i>"]:::agent
 
-    vreg --> vcm
-    clkrst --> vcm
+    vreg --> vtool
+    clkrst --> vtool
+    vtool --> vcm
     vcm --> wave --> vrg
     vcm --> ktm --> vrg
-    vrg --> CA
-    CA -. "Gap 迭代" .-> vcm
+    vrg --> vtrack
+    vtrack -. "Gap 迭代" .-> vcm
 
-    vctrl["VCtrl<br/><i>VS Code 统一视图</i>"]:::gui
+    vctrl["vctrl<br/><i>VS Code 统一视图</i>"]:::gui
     tplan["tool_plan<br/><i>项目排期</i>"]:::plan
 
+    vctrl -.-> vtrack
     vctrl -.-> vcm
     vctrl -.-> vrg
 
     classDef agent fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
     classDef reg fill:#fff3e0,stroke:#ef6c00,color:#000
     classDef tool fill:#e3f2fd,stroke:#1565c0,color:#000
+    classDef scaffold fill:#f3e5f5,stroke:#7b1fa2,color:#000
+    classDef track fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
     classDef debug fill:#e8f5e9,stroke:#2e7d32,color:#000
     classDef gui fill:#e0f2f1,stroke:#00796b,stroke-width:2px,color:#000
     classDef plan fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
@@ -133,11 +139,13 @@ flowchart LR
 | **流程编排** | **ChipAgent** | 自研Agent。通过结构化 Playbook 驱动底层工具，内置多种应用场景和skill。 |
 | **设计定义** | **vreg** | 寄存器管理平台。可视化编辑寄存器定义，一键生成 RTL / UVM / C 代码。 |
 | **设计定义** | **crn design** | 时钟复位网络可视化设计，基于 ReactFlow 交互式编辑，导出 Verilog 代码。 |
+| **环境搭建** | **vtool** | 命令行工具集。覆盖 UVM 骨架生成、回归用例管理、日志分析与代码检索。 |
 | **仿真执行** | **vcm** | 仿真管理系统。统管单次仿真与 SLURM 集群回归，处理多工艺角 EMC 自动化构建。 |
 | **调试分析** | **tool_wave** | FSDB 波形读取与网表信号 driver/load 追踪，基于 Verdi NPI 的 C/S 架构。 |
 | **调试分析** | **tool_ktm** | Cortex-M 内核追踪分析器，支持工程师与 AI 双模式交互。 |
 | **覆盖分析** | **vrg** | 覆盖率分析引擎。通过 C 层引擎直接解析 VDB，实现用例级覆盖率归因与冗余识别。 |
-| **视窗交互** | **VCtrl** | IDE 控制台。以 VS Code 扩展形式，将分散的命令行工具统一为可视化交互界面。 |
+| **需求追踪** | **vtrack** | 验证追踪系统。管理 Feature → VP → Case 三层追溯链路，提供缺口分析与覆盖率同步。 |
+| **视窗交互** | **vctrl** | IDE 控制台。以 VS Code 扩展形式，统一可视化 vtrack 追踪、覆盖率与仿真状态。 |
 | **项目管理** | **tool_plan** | 排期管理平台。多产品线项目排期、资源负载分析与 Jira 工时对比，单二进制部署。 |
 
 ---
