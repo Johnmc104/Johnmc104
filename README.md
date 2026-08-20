@@ -95,26 +95,35 @@ mindmap
 
 ## 验证工具生态
 
-从核心引擎到 AI 编排——六套系统组成完整的验证自动化栈：
+从设计定义到追踪闭环——九套系统组成完整的验证自动化栈：
 
 ```mermaid
-flowchart TD
-    CA["ChipAgent<br/><i>AI 编排 · vtrack 追踪</i>"]:::agent
+flowchart LR
+    vreg["vreg<br/><i>寄存器定义</i>"]:::reg
+    clkrst["clkrst_network<br/><i>时钟复位设计</i>"]:::reg
+    vcm["vcm<br/><i>仿真执行</i>"]:::tool
+    wave["tool_wave<br/><i>波形调试</i>"]:::debug
+    ktm["tool_ktm<br/><i>内核追踪</i>"]:::debug
+    vrg["vrg<br/><i>覆盖率分析</i>"]:::tool
+    CA["ChipAgent<br/><i>流程编排 · vtrack 追踪</i>"]:::agent
 
-    CA --> vcm["vcm · 仿真管理"]:::tool
-    CA --> vrg["vrg · 覆盖率分析"]:::tool
-    CA --> vreg["vreg · 寄存器平台"]:::reg
+    vreg --> vcm
+    clkrst --> vcm
+    vcm --> wave --> vrg
+    vcm --> ktm --> vrg
+    vrg --> CA
+    CA -. "Gap 迭代" .-> vcm
 
     vctrl["VCtrl<br/><i>VS Code 统一视图</i>"]:::gui
-    tplan["tool_plan<br/><i>项目排期 · 资源管理</i>"]:::plan
+    tplan["tool_plan<br/><i>项目排期</i>"]:::plan
 
     vctrl -.-> vcm
     vctrl -.-> vrg
-    vctrl -.-> vreg
 
     classDef agent fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
     classDef reg fill:#fff3e0,stroke:#ef6c00,color:#000
     classDef tool fill:#e3f2fd,stroke:#1565c0,color:#000
+    classDef debug fill:#e8f5e9,stroke:#2e7d32,color:#000
     classDef gui fill:#e0f2f1,stroke:#00796b,stroke-width:2px,color:#000
     classDef plan fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
 ```
@@ -122,25 +131,14 @@ flowchart TD
 | 架构分层 | 核心组件 | 定位与核心职责 |
 |---|---|---|
 | **流程编排** | **ChipAgent** | 终端自动化助手。通过结构化 Playbook 驱动底层工具，内置 vtrack 验证追踪，将验证任务串联成端到端流程。 |
+| **设计定义** | **vreg** | 寄存器管理平台。可视化编辑寄存器定义，自动检测位域冲突，一键生成 RTL / UVM / C 代码。 |
+| **设计定义** | **clkrst_network** | 时钟复位网络可视化设计，基于 ReactFlow 交互式编辑，导出 Verilog 代码。 |
+| **仿真执行** | **vcm** | 仿真管理系统。统管单次仿真与 SLURM 集群回归，处理多工艺角 EMC 自动化构建。 |
+| **调试分析** | **tool_wave** | FSDB 波形读取与网表信号 driver/load 追踪，基于 Verdi NPI 的 C/S 架构。 |
+| **调试分析** | **tool_ktm** | Cortex-M 内核追踪分析器，支持工程师与 AI 双模式交互。 |
+| **覆盖分析** | **vrg** | 覆盖率分析引擎。通过 C 层引擎直接解析 VDB，实现用例级覆盖率归因与冗余识别。 |
 | **视窗交互** | **VCtrl** | IDE 控制台。以 VS Code 扩展形式，将分散的命令行工具统一为可视化交互界面。 |
 | **项目管理** | **tool_plan** | 排期管理平台。多产品线项目排期、资源负载分析与 Jira 工时对比，单二进制部署。 |
-| **资产定义** | **vreg** | 寄存器管理平台。可视化编辑寄存器定义，自动检测位域冲突，一键生成 RTL / UVM / C 代码。 |
-| **执行调度** | **vcm** | 仿真管理系统。统管单次仿真与 SLURM 集群回归，处理多工艺角 EMC 自动化构建。 |
-| **覆盖分析** | **vrg** | 覆盖率分析引擎。通过 C 层引擎直接解析 VDB，实现用例级覆盖率归因与冗余识别。 |
-
----
-
-### ChipAgent — AI 驱动的 EDA 终端助手
-
-ChipAgent 是专为芯片设计全流程打造的终端 AI 助手，基于 Deep Agents（LangChain 生态）构建，可部署在网络隔离的 EDA 服务器上。与通用编程助手不同，它聚焦芯片设计中**可规范化、可重复执行的流程任务**——仿真调试、逻辑综合、日志分析、环境搭建、EDA 知识问答——将标准化操作流程沉淀为 AI 可驱动的知识结构。项目规模 6.2 万余行，含 14 个核心组件与 1956 个测试用例。
-
-| 核心特性 | 说明与价值 |
-|---|---|
-| **三层 EDA 知识体系** | YAML/Markdown 驱动的"岗位 → 事项 → 知识"三层模型，将 EDA 经验结构化为 AI 可检索、可执行的知识库 |
-| **内置验证追踪** | 集成 vtrack 系统，管理 Feature → VP → Case 三层追溯链路，提供缺口分析与覆盖率同步 |
-| **原生 CI 集成** | 支持嵌入自动化脚本，可无缝融入已有仿真流水线 |
-| **安全与权限把控** | 四级风险划分，结合 LLM 分类器与"人类在环（HITL）"审批机制 |
-| **跨层记忆系统** | 项目级、用户级、会话级三层记忆，支持 AI 跨会话知识迁移与事后复盘 |
 
 ---
 
@@ -149,10 +147,7 @@ ChipAgent 是专为芯片设计全流程打造的终端 AI 助手，基于 Deep 
 | 工具 | 功能 | 技术 | 应用场景 |
 |------|------|------|------|
 | **tool_cov** | Verdi/VCS 覆盖率提取 → Excel 报告 | NPI + Python | 周期性覆盖率汇报 |
-| **tool_wave** | FSDB 波形读取 + 网表 signal driver/load 追踪 | Verdi NPI · C/S 架构 | 信号溯源调试 |
 | **tool_soc** | IP-XACT SoC 自动互联 → RTL / C Header / Device Tree | Python 3.11+ | SoC 集成 |
-| **tool_clkrst_network** | 时钟复位网络可视化设计 → Verilog 导出 | React + ReactFlow | 时钟树规划 |
-| **tool_ktm** | Cortex-M 内核追踪分析器（AI + 工程师双模式） | Python | 嵌入式调试分析 |
 | **tool_disasm_8051** | 8051 固件反汇编 · 跳转分析 · 内存利用率 | Python | 嵌入式固件分析 |
 | **python_tool** | spec2rdl · spec2xlsx · json2docx · pinmux · IO list · 工时报告 | Python 脚本集 | 日常数据转换 |
 
