@@ -100,7 +100,7 @@ mindmap
 ```mermaid
 flowchart LR
     vreg["vreg<br/><i>寄存器定义</i>"]:::reg
-    clkrst["clkrst_network<br/><i>时钟复位设计</i>"]:::reg
+    clkrst["crn design<br/><i>时钟复位设计</i>"]:::reg
     vcm["vcm<br/><i>仿真执行</i>"]:::tool
     wave["tool_wave<br/><i>波形调试</i>"]:::debug
     ktm["tool_ktm<br/><i>内核追踪</i>"]:::debug
@@ -130,9 +130,9 @@ flowchart LR
 
 | 架构分层 | 核心组件 | 定位与核心职责 |
 |---|---|---|
-| **流程编排** | **ChipAgent** | 终端自动化助手。通过结构化 Playbook 驱动底层工具，内置 vtrack 验证追踪，将验证任务串联成端到端流程。 |
-| **设计定义** | **vreg** | 寄存器管理平台。可视化编辑寄存器定义，自动检测位域冲突，一键生成 RTL / UVM / C 代码。 |
-| **设计定义** | **clkrst_network** | 时钟复位网络可视化设计，基于 ReactFlow 交互式编辑，导出 Verilog 代码。 |
+| **流程编排** | **ChipAgent** | 自研Agent。通过结构化 Playbook 驱动底层工具，内置多种应用场景和skill。 |
+| **设计定义** | **vreg** | 寄存器管理平台。可视化编辑寄存器定义，一键生成 RTL / UVM / C 代码。 |
+| **设计定义** | **crn design** | 时钟复位网络可视化设计，基于 ReactFlow 交互式编辑，导出 Verilog 代码。 |
 | **仿真执行** | **vcm** | 仿真管理系统。统管单次仿真与 SLURM 集群回归，处理多工艺角 EMC 自动化构建。 |
 | **调试分析** | **tool_wave** | FSDB 波形读取与网表信号 driver/load 追踪，基于 Verdi NPI 的 C/S 架构。 |
 | **调试分析** | **tool_ktm** | Cortex-M 内核追踪分析器，支持工程师与 AI 双模式交互。 |
